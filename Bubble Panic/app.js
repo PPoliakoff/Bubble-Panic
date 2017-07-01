@@ -62,7 +62,7 @@ var Player = (function (_super) {
         }
     };
     Player.prototype.dammage = function () {
-        this.width -= 5;
+        this.width -= 5; // comment for imortality
         if (this.width <= 0) {
             this.visible = false;
         }
@@ -141,17 +141,19 @@ var ctx;
 var gameObjects = new Array();
 function gameLoop() {
     requestAnimationFrame(gameLoop);
+    redrawGame();
+}
+function redrawGame() {
     ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, 1280, 720);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (var i = 0; i < gameObjects.length; i++) {
         gameObjects[i].draw();
         gameObjects[i].animate();
     }
 }
 function mouseDown(event) {
-    var x = event.x - canvas.offsetLeft + window.pageXOffset;
-    ;
-    var y = event.y - canvas.offsetTop + window.pageYOffset;
+    var x = (event.x - canvas.offsetLeft + window.pageXOffset) * canvas.width / canvas.offsetWidth;
+    var y = (event.y - canvas.offsetTop + window.pageYOffset) * canvas.height / canvas.offsetHeight;
     var player = gameObjects[0];
     var dx = x - player.x;
     var dy = y - player.y;
@@ -161,10 +163,33 @@ function mouseDown(event) {
         player.dy = dy / vectorlength;
     }
 }
+function gameResize() {
+    var newWidth = window.innerWidth * 0.95;
+    var newHeight = window.innerHeight * 0.95;
+    if (newWidth * 9 > newHeight * 16) {
+        //width is too large
+        newWidth = newHeight * 16 / 9;
+    }
+    else {
+        //height is too large
+        newHeight = newWidth * 9 / 16;
+    }
+    var gameDiv = document.getElementById("gameDiv");
+    gameDiv.style.width = newWidth + "px";
+    gameDiv.style.height = newHeight + "px";
+    gameDiv.style.marginTop = (window.innerHeight - newHeight) / 2 + "px";
+    gameDiv.style.marginLeft = (window.innerWidth - newWidth) / 2 + "px";
+    //  canvas.height = canvas.offsetHeight;
+    //  canvas.width = canvas.offsetWidth;
+    redrawGame();
+}
 window.onload = function () {
-    canvas = document.getElementById("my_canvas");
+    canvas = document.getElementById("myCanvas");
     canvas.addEventListener("mousedown", mouseDown, false);
     ctx = canvas.getContext("2d");
+    //  window.addEventListener("orientationchange", gameResize, false);
+    window.addEventListener("resize", gameResize, false);
+    gameResize();
     gameObjects.push(new Player(canvas.width / 2, canvas.height / 2, 20));
     for (var i = 0; i < 5; i++) {
         gameObjects.push(new Circle(Math.random() * (canvas.width - 200) + 100, Math.random() * 50 + 77, Math.random() * 50 + 25, gameObjects[0]));

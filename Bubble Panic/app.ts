@@ -68,7 +68,7 @@ class Player extends Sprite {
     }
 
     dammage(): void {
-        this.width -= 5;
+        this.width -= 5; // comment for imortality
         if (this.width <= 0) {
             this.visible = false;
         }
@@ -158,8 +158,14 @@ let gameObjects: Array<Sprite> = new Array<Sprite>();
 
 function gameLoop() {
     requestAnimationFrame(gameLoop)
+    redrawGame();
+
+}
+
+
+function redrawGame(): void {
     ctx.fillStyle = "black";
-    ctx.fillRect(0, 0, 1280, 720);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < gameObjects.length; i++) {
         gameObjects[i].draw();
         gameObjects[i].animate();
@@ -167,10 +173,12 @@ function gameLoop() {
 }
 
 function mouseDown(event: MouseEvent): void {
-    let x: number = event.x - canvas.offsetLeft + window.pageXOffset;;
-    let y: number = event.y - canvas.offsetTop + window.pageYOffset;
+    let x: number = (event.x - canvas.offsetLeft + window.pageXOffset)*canvas.width/canvas.offsetWidth;
+    let y: number = (event.y - canvas.offsetTop + window.pageYOffset) * canvas.height / canvas.offsetHeight;
 
-    let player: Circle = (<Circle>gameObjects[0])
+    let player: Player = (<Player>gameObjects[0])
+
+
     let dx: number = x - player.x;
     let dy: number = y - player.y;
     let vectorlength = Math.sqrt(dx * dx + dy * dy);
@@ -180,11 +188,44 @@ function mouseDown(event: MouseEvent): void {
     }
 }
 
-window.onload = () => {
-    canvas = <HTMLCanvasElement>document.getElementById("my_canvas");
-    canvas.addEventListener("mousedown", mouseDown, false);
 
+function gameResize() {
+    let newWidth = window.innerWidth * 0.95;
+    let newHeight = window.innerHeight * 0.95;
+    if (newWidth * 9 > newHeight * 16) {
+        //width is too large
+        newWidth = newHeight * 16 / 9;
+    }
+    else {
+        //height is too large
+        newHeight = newWidth * 9 / 16
+    }
+
+    let gameDiv: HTMLDivElement = <HTMLDivElement>document.getElementById("gameDiv");
+    gameDiv.style.width = newWidth + "px";
+    gameDiv.style.height = newHeight + "px";
+    gameDiv.style.marginTop = (window.innerHeight - newHeight) / 2 + "px"
+    gameDiv.style.marginLeft = (window.innerWidth - newWidth) / 2 + "px";
+
+    //  canvas.height = canvas.offsetHeight;
+    //  canvas.width = canvas.offsetWidth;
+
+    redrawGame();
+}
+
+window.onload = () => {
+
+
+
+    canvas = <HTMLCanvasElement>document.getElementById("myCanvas");
+    canvas.addEventListener("mousedown", mouseDown, false);
     ctx = canvas.getContext("2d");
+
+    //  window.addEventListener("orientationchange", gameResize, false);
+    window.addEventListener("resize", gameResize, false);
+
+    gameResize();
+
     gameObjects.push(new Player(canvas.width / 2, canvas.height / 2, 20))
     for (let i = 0; i < 5; i++) {
         gameObjects.push(new Circle(Math.random() * (canvas.width - 200) + 100, Math.random() * 50 + 77, Math.random() * 50 + 25, <Player>gameObjects[0]));
